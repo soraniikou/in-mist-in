@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>in-mist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #0e0d10;
+    font-family: 'Cormorant Garamond', 'EB Garamond', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    color: #e8e6dc;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+
+  #stage {
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 50% 55%, #1a1820 0%, #0e0d10 60%, #06060a 100%);
+  }
+  canvas { position: absolute; inset: 0; display: block; }
+  #mist { z-index: 1; }
+  #ink { z-index: 2; }
+  #lights { z-index: 3; }
+
+  /* ---- scenes ---- */
+  .scene {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 2rem;
+    transition: opacity 1.8s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .scene.active { opacity: 1; pointer-events: auto; }
+  .scene.active.no-interaction { pointer-events: none; }
+
+  /* ---- opening ---- */
+  #opening .title {
+    font-size: clamp(2.2rem, 8vw, 3.4rem);
+    letter-spacing: 0.35em;
+    font-weight: 300;
+    color: #efece0;
+    opacity: 0.95;
+    margin-bottom: 1.2rem;
+  }
+  #opening .title .dash {
+    display: inline-block;
+    width: 2rem;
+    height: 1px;
+    background: #efece0;
+    vertical-align: middle;
+    margin: 0 0.3rem 0.2rem;
+    opacity: 0.5;
+  }
+  #opening .subtitle {
+    font-size: clamp(0.85rem, 3vw, 1rem);
+    letter-spacing: 0.3em;
+    color: #9a9686;
+    line-height: 2.2;
+    margin-bottom: 3rem;
+    font-weight: 300;
+  }
+  #opening .start {
+    background: transparent;
+    border: 1px solid rgba(232, 230, 220, 0.3);
+    color: #e8e6dc;
+    padding: 0.9rem 2.2rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    letter-spacing: 0.4em;
+    cursor: pointer;
+    transition: all 0.5s ease;
+    backdrop-filter: blur(4px);
+  }
+  #opening .start:hover {
+    background: rgba(232, 230, 220, 0.06);
+    border-color: rgba(232, 230, 220, 0.6);
+    letter-spacing: 0.5em;
+  }
+
+  /* ---- input ---- */
+  #input {
+    justify-content: flex-start;
+    padding-top: 18vh;
+  }
+  #input .prompt {
+    font-size: clamp(0.9rem, 3.2vw, 1.1rem);
+    letter-spacing: 0.28em;
+    color: #c8c4b4;
+    line-height: 2.2;
+    margin-bottom: 3rem;
+    opacity: 0.9;
+    font-weight: 300;
+  }
+  #input .mode-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2.5rem;
+  }
+  #input .mode-toggle button {
+    background: transparent;
+    border: 1px solid rgba(232, 230, 220, 0.2);
+    color: #9a9686;
+    padding: 0.5rem 1.4rem;
+    font-family: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    cursor: pointer;
+    transition: all 0.4s ease;
+  }
+  #input .mode-toggle button:first-child { border-right: none; }
+  #input .mode-toggle button.active {
+    color: #efece0;
+    border-color: rgba(232, 230, 220, 0.5);
+    background: rgba(232, 230, 220, 0.04);
+  }
+
+  #input textarea {
+    width: min(500px, 85vw);
+    height: 140px;
+    background: rgba(15, 13, 18, 0.4);
+    border: 1px solid rgba(232, 230, 220, 0.18);
+    border-radius: 2px;
+    color: #efece0;
+    font-family: inherit;
+    font-size: 1.05rem;
+    line-height: 1.9;
+    letter-spacing: 0.08em;
+    padding: 1.2rem 1.4rem;
+    resize: none;
+    outline: none;
+    backdrop-filter: blur(6px);
+    transition: border-color 0.4s ease;
+  }
+  #input textarea:focus { border-color: rgba(232, 230, 220, 0.4); }
+  #input textarea::placeholder { color: #5a5648; font-style: italic; }
+
+  /* Ruby (furigana) styling — small, soft, breathable */
+  ruby { ruby-align: center; }
+  rt {
+    font-size: 0.9em;
+    letter-spacing: 0.15em;
+    color: inherit;
+    opacity: 0.75;
+    font-weight: 300;
+  }
+
+  /* When drawing mode is active, let pointer events pass through the scene
+     except for the controls (mode toggle, hint, submit button). */
+  #input.draw-active { pointer-events: none; }
+  #input.draw-active .mode-toggle,
+  #input.draw-active .mode-toggle button,
+  #input.draw-active .draw-hint,
+  #input.draw-active .submit { pointer-events: auto; }
+
+  #input .draw-hint {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: #6a6658;
+    margin-top: 1.5rem;
+    opacity: 0.7;
+  }
+
+  #input .submit {
+    margin-top: 2rem;
+    background: transparent;
+    border: 1px solid rgba(232, 230, 220, 0.3);
+    color: #e8e6dc;
+    padding: 0.8rem 2rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    cursor: pointer;
+    transition: all 0.5s ease;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+  #input .submit.ready { opacity: 1; pointer-events: auto; }
+  #input .submit.ready:hover {
+    background: rgba(232, 230, 220, 0.06);
+    letter-spacing: 0.5em;
+  }
+
+  /* ---- silence scene ---- */
+  #silence .whisper {
+    font-size: clamp(0.8rem, 2.8vw, 0.95rem);
+    letter-spacing: 0.4em;
+    color: #7a7668;
+    opacity: 0;
+    transition: opacity 3s ease;
+    font-weight: 300;
+    line-height: 2.5;
+  }
+  #silence.active .whisper { opacity: 0.8; }
+
+  /* ---- choice scene ---- */
+  #choice {
+    flex-direction: column;
+    gap: 0;
+  }
+  #choice .question {
+    font-size: clamp(0.9rem, 3vw, 1.05rem);
+    letter-spacing: 0.3em;
+    color: #b8b4a4;
+    margin-bottom: 4rem;
+    opacity: 0.9;
+    line-height: 2.2;
+    font-weight: 300;
+  }
+  #choice .orbs {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  @media (min-width: 700px) {
+    #choice .orbs { flex-direction: row; gap: 4rem; }
+  }
+
+  .orb {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 1.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1.8s ease, transform 1.8s ease;
+  }
+  .orb.visible { opacity: 1; transform: translateY(0); }
+  .orb:hover .orb-core { transform: scale(1.15); }
+  .orb:hover .orb-label { color: #fff; letter-spacing: 0.45em; }
+
+  .orb-core {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    margin-bottom: 1.5rem;
+    transition: transform 0.6s ease;
+    position: relative;
+  }
+  .orb-core::before {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    opacity: 0.6;
+    filter: blur(16px);
+    animation: pulse 4s ease-in-out infinite;
+  }
+  .orb-core::after {
+    content: '';
+    position: absolute;
+    inset: -40px;
+    border-radius: 50%;
+    opacity: 0.3;
+    filter: blur(28px);
+    animation: pulse 4s ease-in-out infinite;
+    animation-delay: 0.5s;
+  }
+
+  .orb[data-choice="yes"] .orb-core,
+  .orb[data-choice="yes"] .orb-core::before,
+  .orb[data-choice="yes"] .orb-core::after {
+    background: radial-gradient(circle at 35% 35%, #ffd89a 0%, #e89a5a 55%, #b85a30 100%);
+  }
+  .orb[data-choice="mist"] .orb-core,
+  .orb[data-choice="mist"] .orb-core::before,
+  .orb[data-choice="mist"] .orb-core::after {
+    background: radial-gradient(circle at 35% 35%, #fffef5 0%, #e6e3d4 55%, #a8a496 100%);
+  }
+  .orb[data-choice="no"] .orb-core,
+  .orb[data-choice="no"] .orb-core::before,
+  .orb[data-choice="no"] .orb-core::after {
+    background: radial-gradient(circle at 35% 35%, #b4c8e0 0%, #6a8ab0 55%, #2a4a70 100%);
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.1); }
+  }
+
+  .orb-label {
+    font-size: 0.85rem;
+    letter-spacing: 0.35em;
+    color: #d8d4c4;
+    line-height: 1.8;
+    transition: all 0.4s ease;
+    font-weight: 300;
+    text-align: center;
+  }
+
+  /* ---- message scene ---- */
+  #message {
+    flex-direction: column;
+    gap: 3rem;
+  }
+  #message .line1 {
+    font-size: clamp(1.1rem, 4vw, 1.4rem);
+    letter-spacing: 0.32em;
+    color: #efece0;
+    line-height: 2.4;
+    font-weight: 300;
+    text-shadow: 0 0 24px rgba(255, 235, 200, 0.25);
+  }
+  #message .line2 {
+    font-size: clamp(0.85rem, 2.8vw, 1rem);
+    letter-spacing: 0.4em;
+    color: #b8b4a4;
+    line-height: 2.4;
+    font-weight: 300;
+    opacity: 0.85;
+  }
+  #message .divider {
+    width: 40px;
+    height: 1px;
+    background: rgba(232, 230, 220, 0.3);
+  }
+  #message .again {
+    margin-top: 2rem;
+    background: transparent;
+    border: 1px solid rgba(232, 230, 220, 0.25);
+    color: #c8c4b4;
+    padding: 0.75rem 1.8rem;
+    font-family: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    opacity: 0;
+    animation: fadeIn 2s ease 2.5s forwards;
+  }
+  #message .again:hover {
+    border-color: rgba(232, 230, 220, 0.5);
+    color: #efece0;
+  }
+
+  /* ---- finale scene ---- */
+  #finale {
+    flex-direction: column;
+    gap: 0;
+    justify-content: center;
+  }
+  #finale .finale-light {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 4rem;
+    background: radial-gradient(circle at 35% 35%, #fffbe8 0%, #f5e9c8 40%, #c9a06a 100%);
+    position: relative;
+    opacity: 0;
+    transform: scale(0.3);
+    transition: opacity 3s ease, transform 4s ease;
+  }
+  #finale .finale-light::before {
+    content: '';
+    position: absolute;
+    inset: -40px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 245, 210, 0.5) 0%, rgba(255, 245, 210, 0) 70%);
+    filter: blur(24px);
+    animation: finalePulse 5s ease-in-out infinite;
+  }
+  #finale .finale-light::after {
+    content: '';
+    position: absolute;
+    inset: -80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 235, 180, 0.25) 0%, rgba(255, 235, 180, 0) 70%);
+    filter: blur(36px);
+    animation: finalePulse 5s ease-in-out infinite;
+    animation-delay: 0.8s;
+  }
+  #finale.light-on .finale-light {
+    opacity: 1;
+    transform: scale(1);
+  }
+  @keyframes finalePulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.15); }
+  }
+  #finale .finale-text {
+    font-size: clamp(1.2rem, 4.5vw, 1.6rem);
+    letter-spacing: 0.35em;
+    color: #fbf5e0;
+    line-height: 2.6;
+    font-weight: 300;
+    text-shadow: 0 0 28px rgba(255, 235, 195, 0.4);
+    opacity: 0;
+    transition: opacity 3.5s ease;
+    text-align: center;
+  }
+  #finale.text-on .finale-text { opacity: 1; }
+  #finale .finale-again {
+    margin-top: 4rem;
+    background: transparent;
+    border: 1px solid rgba(232, 230, 220, 0.25);
+    color: #c8c4b4;
+    padding: 0.75rem 1.8rem;
+    font-family: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    opacity: 0;
+  }
+  #finale.button-on .finale-again { opacity: 1; }
+  #finale .finale-again:hover {
+    border-color: rgba(232, 230, 220, 0.5);
+    color: #efece0;
+  }
+
+  /* stand.fm link — barely there, like a distant light */
+  #finale .finale-link {
+    margin-top: 2rem;
+    color: #7a7668;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(122, 118, 104, 0.3);
+    padding-bottom: 0.2rem;
+    opacity: 0;
+    transition: all 0.6s ease;
+    font-weight: 300;
+  }
+  #finale.button-on .finale-link { opacity: 0.7; }
+  #finale .finale-link:hover {
+    color: #c8c4b4;
+    border-bottom-color: rgba(200, 196, 180, 0.6);
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  /* ---- corner marks ---- */
+  .corner-mark {
+    position: fixed;
+    font-size: 0.65rem;
+    letter-spacing: 0.5em;
+    color: #6b2fa5;
+    opacity: 1;
+    text-shadow: 0 0 8px rgba(107, 47, 165, 0.5);
+    z-index: 30;
+    pointer-events: none;
+  }
+  .tl { top: 1.4rem; left: 1.4rem; }
+  .br { bottom: 1.4rem; right: 1.4rem; font-style: italic; letter-spacing: 0.2em; }
+
+  /* audio toggle */
+  #audioToggle {
+    position: fixed;
+    top: 1.4rem;
+    right: 1.4rem;
+    z-index: 30;
+    background: transparent;
+    border: 1px solid rgba(232, 230, 220, 0.2);
+    color: #9a9686;
+    padding: 0.4rem 0.7rem;
+    font-family: inherit;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: all 0.4s ease;
+  }
+  #audioToggle:hover { color: #e8e6dc; border-color: rgba(232, 230, 220, 0.4); }
+
+  /* Listen to the song button — top-right, purple */
+  #listenTop {
+    position: fixed;
+    top: 1.4rem;
+    right: 5.5rem; /* audioToggleの左に配置 */
+    z-index: 30;
+    background: rgba(107, 47, 165, 0.15);
+    border: 1px solid rgba(180, 130, 230, 0.5);
+    color: #d4b0ff;
+    padding: 0.4rem 0.9rem;
+    font-family: inherit;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    text-decoration: none;
+    backdrop-filter: blur(6px);
+    transition: all 0.4s ease;
+    text-shadow: 0 0 8px rgba(180, 130, 230, 0.4);
+    font-weight: 300;
+  }
+  #listenTop:hover {
+    background: rgba(107, 47, 165, 0.3);
+    border-color: rgba(200, 150, 240, 0.8);
+    color: #efece0;
+    letter-spacing: 0.25em;
+  }
+
+  /* English-specific letter-spacing — English works better with less spacing than Japanese */
+  #opening .title { letter-spacing: 0.18em; }
+  #opening .subtitle { letter-spacing: 0.18em; font-style: italic; }
+  #opening .start { letter-spacing: 0.3em; }
+  #input .mode-toggle button { letter-spacing: 0.18em; }
+  #input textarea { letter-spacing: 0.02em; font-style: italic; }
+  #input .submit { letter-spacing: 0.18em; }
+  #silence .whisper { letter-spacing: 0.25em; }
+  #choice .question { letter-spacing: 0.2em; font-style: italic; }
+  .orb-label { letter-spacing: 0.2em; }
+  #message .line1 { letter-spacing: 0.18em; font-style: italic; }
+  #message .line2 { letter-spacing: 0.2em; }
+  #finale .finale-text { letter-spacing: 0.18em; font-style: italic; }
+  #finale .finale-again { letter-spacing: 0.3em; }
+  #finale .finale-link { letter-spacing: 0.2em; }
+  #audioToggle { letter-spacing: 0.15em; }
+
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="mist"></canvas>
+  <canvas id="ink"></canvas>
+  <canvas id="lights"></canvas>
+</div>
+
+<div class="corner-mark tl">IN &mdash; MIST</div>
+
+<button id="audioToggle">♪ ON</button>
+<a id="listenTop" href="https://stand.fm/episodes/69e76f76826838108e2cbaef" target="_blank" rel="noopener noreferrer">Listen to the song →</a>
+
+<!-- Scene 1: Opening -->
+<div class="scene active" id="opening">
+  <div class="title">in<span class="dash"></span>mist</div>
+  <div class="subtitle">
+    To be unsure<br>
+    is not a mistake.
+  </div>
+  <button class="start">begin</button>
+</div>
+
+<!-- Scene 2: Input -->
+<div class="scene" id="input">
+  <div class="mode-toggle">
+    <button class="active" data-mode="text">in words</button>
+    <button data-mode="draw">in shape</button>
+  </div>
+  <textarea placeholder="What you're unsure of, just as it is..."></textarea>
+  <div class="draw-hint" style="display:none;">draw with your finger</div>
+  <button class="submit">send it gently into the mist</button>
+</div>
+
+<!-- Scene 3: Silence (mist absorbs) -->
+<div class="scene no-interaction" id="silence">
+  <div class="whisper">
+    ……
+  </div>
+</div>
+
+<!-- Scene 4: Choice -->
+<div class="scene" id="choice">
+  <div class="question">
+    What will you do?
+  </div>
+  <div class="orbs">
+    <div class="orb" data-choice="yes">
+      <div class="orb-core"></div>
+      <div class="orb-label">choose</div>
+    </div>
+    <div class="orb" data-choice="mist">
+      <div class="orb-core"></div>
+      <div class="orb-label">stay<br>in the mist</div>
+    </div>
+    <div class="orb" data-choice="no">
+      <div class="orb-core"></div>
+      <div class="orb-label">don't choose</div>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 5: Message -->
+<div class="scene" id="message">
+  <div class="line1">
+    Whichever you chose,<br>
+    it was not a mistake.
+  </div>
+  <div class="line2" id="messageSub">
+    Choosing,<br>
+    not choosing,<br>
+    staying in the mist.
+  </div>
+</div>
+
+<!-- Scene 6: Finale -->
+<div class="scene" id="finale">
+  <div class="finale-light"></div>
+  <div class="finale-text">
+    You,<br>
+    who have wandered,<br>
+    were enough.
+  </div>
+  <button class="finale-again">again</button>
+  <a class="finale-link" href="https://stand.fm/episodes/69e76f76826838108e2cbaef" target="_blank" rel="noopener noreferrer">listen to the song</a>
+</div>
+
+<audio id="bgm" loop preload="auto">
+  <!-- けんしさんのカバー曲mp3をここに置いてください -->
+  <source src="cover.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+(() => {
+  // ==================== Canvas setup ====================
+  const mistC = document.getElementById('mist');
+  const inkC = document.getElementById('ink');
+  const lightsC = document.getElementById('lights');
+  const mistCtx = mistC.getContext('2d');
+  const inkCtx = inkC.getContext('2d');
+  const lightsCtx = lightsC.getContext('2d');
+
+  let W = 0, H = 0;
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    [mistC, inkC, lightsC].forEach(c => {
+      c.width = W * DPR;
+      c.height = H * DPR;
+      c.style.width = W + 'px';
+      c.style.height = H + 'px';
+      c.getContext('2d').setTransform(DPR, 0, 0, DPR, 0, 0);
+    });
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ==================== Mist particles (always running) ====================
+  const mistParticles = [];
+  const MIST_COUNT = 28;
+  for (let i = 0; i < MIST_COUNT; i++) {
+    mistParticles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 80 + Math.random() * 180,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: (Math.random() - 0.5) * 0.1,
+      a: 0.02 + Math.random() * 0.04,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+
+  let mistIntensity = 1; // 1 = normal, higher = denser during absorption
+
+  function drawMist() {
+    mistCtx.clearRect(0, 0, W, H);
+    const t = performance.now() * 0.0003;
+    mistParticles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < -p.r) p.x = W + p.r;
+      if (p.x > W + p.r) p.x = -p.r;
+      if (p.y < -p.r) p.y = H + p.r;
+      if (p.y > H + p.r) p.y = -p.r;
+
+      const breathe = 0.85 + Math.sin(t * 2 + p.phase) * 0.15;
+      const grad = mistCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+      const alpha = p.a * breathe * mistIntensity;
+      grad.addColorStop(0, `rgba(220, 215, 200, ${alpha})`);
+      grad.addColorStop(0.5, `rgba(180, 175, 160, ${alpha * 0.4})`);
+      grad.addColorStop(1, 'rgba(180, 175, 160, 0)');
+      mistCtx.fillStyle = grad;
+      mistCtx.beginPath();
+      mistCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      mistCtx.fill();
+    });
+    requestAnimationFrame(drawMist);
+  }
+  drawMist();
+
+  // ==================== Ink drawing (draw mode) ====================
+  let drawing = false;
+  let currentPath = null;
+  let paths = [];
+  let drawMode = false;
+
+  function getPoint(e) {
+    const touch = e.touches ? e.touches[0] : e;
+    return { x: touch.clientX, y: touch.clientY };
+  }
+
+  function startDraw(e) {
+    if (!drawMode || currentScene !== 'input') return;
+    e.preventDefault();
+    const p = getPoint(e);
+    drawing = true;
+    currentPath = [p];
+    paths.push(currentPath);
+    updateSubmitState();
+  }
+  function moveDraw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const p = getPoint(e);
+    const last = currentPath[currentPath.length - 1];
+    if ((p.x - last.x) ** 2 + (p.y - last.y) ** 2 < 4) return;
+    currentPath.push(p);
+    drawInkSegment(last, p);
+  }
+  function endDraw() {
+    drawing = false;
+    currentPath = null;
+  }
+
+  function drawInkSegment(a, b) {
+    inkCtx.save();
+    const grad = inkCtx.createLinearGradient(a.x, a.y, b.x, b.y);
+    grad.addColorStop(0, 'rgba(230, 225, 210, 0)');
+    grad.addColorStop(0.5, 'rgba(240, 235, 215, 0.7)');
+    grad.addColorStop(1, 'rgba(230, 225, 210, 0)');
+    inkCtx.strokeStyle = grad;
+    inkCtx.lineWidth = 2.2;
+    inkCtx.lineCap = 'round';
+    inkCtx.shadowColor = 'rgba(255, 240, 210, 0.6)';
+    inkCtx.shadowBlur = 14;
+    inkCtx.beginPath();
+    inkCtx.moveTo(a.x, a.y);
+    inkCtx.lineTo(b.x, b.y);
+    inkCtx.stroke();
+    inkCtx.restore();
+  }
+
+  const stage = document.getElementById('stage');
+  stage.addEventListener('mousedown', startDraw);
+  stage.addEventListener('mousemove', moveDraw);
+  window.addEventListener('mouseup', endDraw);
+  stage.addEventListener('touchstart', startDraw, { passive: false });
+  stage.addEventListener('touchmove', moveDraw, { passive: false });
+  stage.addEventListener('touchend', endDraw);
+
+  // ==================== Scene management ====================
+  const scenes = {
+    opening: document.getElementById('opening'),
+    input: document.getElementById('input'),
+    silence: document.getElementById('silence'),
+    choice: document.getElementById('choice'),
+    message: document.getElementById('message'),
+    finale: document.getElementById('finale')
+  };
+  let currentScene = 'opening';
+
+  function goTo(name) {
+    scenes[currentScene].classList.remove('active');
+    setTimeout(() => {
+      currentScene = name;
+      scenes[name].classList.add('active');
+      if (name === 'silence') runSilence();
+      if (name === 'choice') revealOrbs();
+      if (name === 'message') runMessage();
+      if (name === 'finale') runFinale();
+    }, 600);
+  }
+
+  // ==================== Opening ====================
+  document.querySelector('#opening .start').addEventListener('click', () => {
+    // start audio on first interaction (browser autoplay policy)
+    const bgm = document.getElementById('bgm');
+    bgm.volume = 0.6;
+    bgm.play().catch(() => {/* ignore if no file */});
+    goTo('input');
+  });
+
+  // ==================== Input ====================
+  const textarea = document.querySelector('#input textarea');
+  const submitBtn = document.querySelector('#input .submit');
+  const drawHint = document.querySelector('#input .draw-hint');
+  const modeButtons = document.querySelectorAll('#input .mode-toggle button');
+
+  modeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      modeButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      drawMode = btn.dataset.mode === 'draw';
+      const inputScene = document.getElementById('input');
+      if (drawMode) {
+        textarea.style.display = 'none';
+        drawHint.style.display = 'block';
+        inputScene.classList.add('draw-active');
+      } else {
+        textarea.style.display = 'block';
+        drawHint.style.display = 'none';
+        inputScene.classList.remove('draw-active');
+        inkCtx.clearRect(0, 0, W, H);
+        paths = [];
+      }
+      updateSubmitState();
+    });
+  });
+
+  function updateSubmitState() {
+    const hasContent = drawMode
+      ? paths.some(p => p.length > 2)
+      : textarea.value.trim().length > 0;
+    submitBtn.classList.toggle('ready', hasContent);
+  }
+  textarea.addEventListener('input', updateSubmitState);
+
+  submitBtn.addEventListener('click', () => {
+    absorbIntoMist();
+  });
+
+  // ==================== Absorb into mist ====================
+  function absorbIntoMist() {
+    // Text absorption: fade the textarea; draw absorption: fade ink
+    if (drawMode) {
+      // animate ink fade
+      const start = performance.now();
+      const duration = 2200;
+      function fadeInk(now) {
+        const t = Math.min(1, (now - start) / duration);
+        inkCtx.save();
+        inkCtx.globalCompositeOperation = 'destination-out';
+        inkCtx.fillStyle = `rgba(0,0,0,${0.02 + t * 0.03})`;
+        inkCtx.fillRect(0, 0, W, H);
+        inkCtx.restore();
+        if (t < 1) requestAnimationFrame(fadeInk);
+        else inkCtx.clearRect(0, 0, W, H);
+      }
+      requestAnimationFrame(fadeInk);
+    }
+
+    // intensify mist briefly
+    const origIntensity = mistIntensity;
+    const startT = performance.now();
+    function pulseMist(now) {
+      const t = Math.min(1, (now - startT) / 2400);
+      mistIntensity = origIntensity + Math.sin(t * Math.PI) * 1.4;
+      if (t < 1) requestAnimationFrame(pulseMist);
+      else mistIntensity = origIntensity;
+    }
+    requestAnimationFrame(pulseMist);
+
+    // transition
+    setTimeout(() => goTo('silence'), 800);
+  }
+
+  // ==================== Silence ====================
+  function runSilence() {
+    // stay in silence for ~3.5s, then go to choice
+    setTimeout(() => goTo('choice'), 3500);
+  }
+
+  // ==================== Choice ====================
+  function revealOrbs() {
+    const orbs = document.querySelectorAll('.orb');
+    orbs.forEach((orb, i) => {
+      setTimeout(() => orb.classList.add('visible'), 400 + i * 500);
+    });
+  }
+
+  document.querySelectorAll('.orb').forEach(orb => {
+    orb.addEventListener('click', () => {
+      const choice = orb.dataset.choice;
+      // customize the sub-message based on the choice — subtle personalization
+      const sub = document.getElementById('messageSub');
+      if (choice === 'yes') {
+        sub.innerHTML = 'Beyond the mist,<br>the world you chose is waiting.';
+      } else if (choice === 'no') {
+        sub.innerHTML = 'Not choosing<br>is not wrong, either.';
+      } else {
+        sub.innerHTML = 'The time inside the mist<br>is your precious time.';
+      }
+      // hide orbs, show message
+      document.querySelectorAll('.orb').forEach(o => o.classList.remove('visible'));
+      setTimeout(() => goTo('message'), 1200);
+    });
+  });
+
+  // ==================== Message → Finale ====================
+  function runMessage() {
+    // After the message has had time to breathe, gently move to the finale
+    setTimeout(() => {
+      if (currentScene === 'message') goTo('finale');
+    }, 6500);
+  }
+
+  // ==================== Finale ====================
+  function runFinale() {
+    const fin = document.getElementById('finale');
+    // Light appears first
+    setTimeout(() => fin.classList.add('light-on'), 400);
+    // Then the words
+    setTimeout(() => fin.classList.add('text-on'), 3200);
+    // Then the "again" button, very gently
+    setTimeout(() => fin.classList.add('button-on'), 7500);
+  }
+
+  // ==================== Again (from finale) ====================
+  document.querySelector('#finale .finale-again').addEventListener('click', () => {
+    textarea.value = '';
+    paths = [];
+    inkCtx.clearRect(0, 0, W, H);
+    document.querySelectorAll('.orb').forEach(o => o.classList.remove('visible'));
+    const fin = document.getElementById('finale');
+    fin.classList.remove('light-on', 'text-on', 'button-on');
+    submitBtn.classList.remove('ready');
+    goTo('input');
+  });
+
+  // ==================== Audio toggle ====================
+  const bgm = document.getElementById('bgm');
+  const audioToggle = document.getElementById('audioToggle');
+  let audioOn = true;
+  audioToggle.addEventListener('click', () => {
+    audioOn = !audioOn;
+    bgm.muted = !audioOn;
+    audioToggle.textContent = audioOn ? '♪ ON' : '♪ OFF';
+  });
+})();
+</script>
+</body>
+</html>
