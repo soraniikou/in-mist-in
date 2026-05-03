@@ -69,4 +69,10 @@ Tech
 
 Sora ni Ikou ([@soraniikou](https://github.com/soraniikou))
 
-A cappella cover: [listen on stand.fm](https://stand.fm/episodes/69e76f76826838108e2cbaef)
+A cappella cover
+Inspiration & Sound
+This app was inspired by the world of Kenshi Yonezu.
+You can listen to the concept a cappella vocal here:
+🎧 Listen to the A cappella on 
+https://stand.fm/episodes/69e76f76826838108e2cbaef
+(Unofficial Cover）
