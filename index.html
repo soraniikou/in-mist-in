@@ -417,25 +417,6 @@
     color: #efece0;
   }
 
-  /* stand.fm link — barely there, like a distant light */
-  #finale .finale-link {
-    margin-top: 2rem;
-    color: #7a7668;
-    font-size: 0.65rem;
-    letter-spacing: 0.3em;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(122, 118, 104, 0.3);
-    padding-bottom: 0.2rem;
-    opacity: 0;
-    transition: all 0.6s ease;
-    font-weight: 300;
-  }
-  #finale.button-on .finale-link { opacity: 0.7; }
-  #finale .finale-link:hover {
-    color: #c8c4b4;
-    border-bottom-color: rgba(200, 196, 180, 0.6);
-  }
-
   @keyframes fadeIn {
     to { opacity: 1; }
   }
@@ -454,8 +435,9 @@
   .tl { top: 1.4rem; left: 1.4rem; }
   .br { bottom: 1.4rem; right: 1.4rem; font-style: italic; letter-spacing: 0.2em; }
 
-  /* audio toggle */
+  /* audio toggle — hidden (BGM still controlled in script; no UI) */
   #audioToggle {
+    display: none;
     position: fixed;
     top: 1.4rem;
     right: 1.4rem;
@@ -477,7 +459,7 @@
   #listenTop {
     position: fixed;
     top: 1.4rem;
-    right: 5.5rem; /* audioToggleの左に配置 */
+    right: 1.4rem;
     z-index: 30;
     background: rgba(107, 47, 165, 0.15);
     border: 1px solid rgba(180, 130, 230, 0.5);
@@ -514,7 +496,6 @@
   #message .line2 { letter-spacing: 0.2em; }
   #finale .finale-text { letter-spacing: 0.18em; font-style: italic; }
   #finale .finale-again { letter-spacing: 0.3em; }
-  #finale .finale-link { letter-spacing: 0.2em; }
   #audioToggle { letter-spacing: 0.15em; }
 
 </style>
@@ -603,7 +584,6 @@
     were enough.
   </div>
   <button class="finale-again">again</button>
-  <a class="finale-link" href="https://stand.fm/episodes/69e76f76826838108e2cbaef" target="_blank" rel="noopener noreferrer">listen to the song</a>
 </div>
 
 <audio id="bgm" loop preload="auto">
