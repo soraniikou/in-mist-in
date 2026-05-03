@@ -6,7 +6,7 @@ in-mist
 
  What is this?
 
-**An app that does not "solve" your indecision.**
+An app that does not "solve" your indecision.**
 
 Write down what you're unsure of, send it into the mist, and three lights will appear:
 
@@ -30,7 +30,15 @@ At the end, a single light remains.
 There is no spectacle. No entertainment.
 **Five minutes, in silence, returning to yourself.**
 
----
+### Screenshots
+
+| | | |
+| :---: | :---: | :---: |
+| ![Screen 1](スクリーンショット%202026-05-03%20155219.png) | ![Screen 2](スクリーンショット%202026-05-03%20185110.png) | ![Screen 3](スクリーンショット%202026-05-03%20185157.png) |
+
+
+| ![Screen 4](スクリーンショット%202026-05-03%20185226.png) | ![Screen 5](スクリーンショット%202026-05-03%20185256.png) |
+
 
  Try it
 
@@ -57,7 +65,7 @@ Tech
 
 ---
 
-## Author
+ Author
 
 Sora ni Ikou ([@soraniikou](https://github.com/soraniikou))
 
