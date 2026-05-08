@@ -413,8 +413,122 @@
   }
   #finale.button-on .finale-again { opacity: 1; }
   #finale .finale-again:hover {
-    border-color: rgba(232, 230, 220, 0.5);
-    color: #efece0;
+    border-color: rgba(80, 60, 100, 0.5);
+    color: #2a1a3a;
+  }
+
+  /* Dawn background — when finale scene is active, the whole stage gently brightens */
+  body.dawn { background: #f4ecdf; }
+  body.dawn #stage {
+    background: radial-gradient(ellipse at 50% 45%, #fff8ec 0%, #f4ecdf 40%, #e8d8c4 80%, #d8c4a8 100%);
+    transition: background 4s ease;
+  }
+  body.dawn #mist { opacity: 0.5; transition: opacity 4s ease; }
+  #stage { transition: background 4s ease; }
+  #mist { transition: opacity 4s ease; }
+
+  /* Finale text colors — adapt to dawn background */
+  body.dawn #finale .finale-text {
+    color: #3d2a4a;
+    text-shadow: 0 0 28px rgba(255, 220, 180, 0.6);
+  }
+  body.dawn #finale .finale-again {
+    border-color: rgba(80, 60, 100, 0.4);
+    color: #6a5878;
+  }
+  body.dawn #finale .finale-again:hover {
+    border-color: rgba(80, 60, 100, 0.7);
+    color: #2a1a3a;
+  }
+  body.dawn .corner-mark { color: #6a5878; }
+  body.dawn #audioToggle {
+    border-color: rgba(80, 60, 100, 0.3);
+    color: #6a5878;
+  }
+
+  /* Brighter, larger, warmer finale light for the dawn */
+  body.dawn #finale .finale-light {
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle at 35% 35%, #fffef5 0%, #ffe8b8 30%, #ffc878 70%, #f5a050 100%);
+  }
+  body.dawn #finale .finale-light::before {
+    background: radial-gradient(circle, rgba(255, 220, 150, 0.7) 0%, rgba(255, 220, 150, 0) 70%);
+  }
+  body.dawn #finale .finale-light::after {
+    background: radial-gradient(circle, rgba(255, 200, 120, 0.4) 0%, rgba(255, 200, 120, 0) 70%);
+  }
+
+  /* ---- The bird (a quiet messenger) ---- */
+  .bird {
+    position: fixed;
+    width: 92px;
+    height: 92px;
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    /* Start position: lower-left, off-screen */
+    top: 70vh;
+    left: -10vw;
+    transform: rotate(-8deg);
+    /* Filter for soft glow against dawn sky */
+    filter: drop-shadow(0 3px 12px rgba(255, 220, 180, 0.6));
+  }
+  body.dawn .bird {
+    opacity: 1;
+    /* Two animations layered: figure-8 flight path + wing flap */
+    animation:
+      birdFlight 28s ease-in-out infinite,
+      birdAppear 3s ease-out forwards;
+  }
+  .bird svg { width: 100%; height: 100%; display: block; }
+  .bird .wing {
+    transform-origin: 50% 50%;
+    animation: wingFlap 0.6s ease-in-out infinite;
+  }
+
+  @keyframes birdAppear {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Slow, dreamy figure-8 path across the upper sky */
+  @keyframes birdFlight {
+    0%   { top: 70vh; left: -10vw; transform: rotate(-8deg) scale(1); }
+    15%  { top: 30vh; left: 20vw;  transform: rotate(-12deg) scale(1.1); }
+    30%  { top: 22vh; left: 45vw;  transform: rotate(0deg) scale(1); }
+    45%  { top: 32vh; left: 70vw;  transform: rotate(10deg) scale(0.95); }
+    50%  { top: 38vh; left: 88vw;  transform: rotate(15deg) scale(0.9); }
+    55%  { top: 32vh; left: 70vw;  transform: rotate(-12deg) scale(0.95) scaleX(-1); }
+    70%  { top: 22vh; left: 45vw;  transform: rotate(0deg) scale(1) scaleX(-1); }
+    85%  { top: 30vh; left: 20vw;  transform: rotate(8deg) scale(1.1) scaleX(-1); }
+    95%  { top: 60vh; left: -5vw;  transform: rotate(15deg) scale(0.9) scaleX(-1); }
+    100% { top: 70vh; left: -10vw; transform: rotate(-8deg) scale(1); }
+  }
+
+  /* Gentle wing flap */
+  @keyframes wingFlap {
+    0%, 100% { transform: scaleY(1); }
+    50%      { transform: scaleY(0.4); }
+  }
+
+  /* stand.fm link — barely there, like a distant light */
+  #finale .finale-link {
+    margin-top: 2rem;
+    color: #7a7668;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(122, 118, 104, 0.3);
+    padding-bottom: 0.2rem;
+    opacity: 0;
+    transition: all 0.6s ease;
+    font-weight: 300;
+  }
+  #finale.button-on .finale-link { opacity: 0.7; }
+  #finale .finale-link:hover {
+    color: #c8c4b4;
+    border-bottom-color: rgba(200, 196, 180, 0.6);
   }
 
   @keyframes fadeIn {
@@ -435,9 +549,8 @@
   .tl { top: 1.4rem; left: 1.4rem; }
   .br { bottom: 1.4rem; right: 1.4rem; font-style: italic; letter-spacing: 0.2em; }
 
-  /* audio toggle — hidden (BGM still controlled in script; no UI) */
+  /* audio toggle */
   #audioToggle {
-    display: none;
     position: fixed;
     top: 1.4rem;
     right: 1.4rem;
@@ -454,34 +567,6 @@
     transition: all 0.4s ease;
   }
   #audioToggle:hover { color: #e8e6dc; border-color: rgba(232, 230, 220, 0.4); }
-
-  /* Listen to the song button — top-right, purple */
-  #listenTop {
-    position: fixed;
-    top: 1.4rem;
-    right: 1.4rem;
-    z-index: 30;
-    background: rgba(107, 47, 165, 0.15);
-    border: 1px solid rgba(180, 130, 230, 0.5);
-    color: #d4b0ff;
-    padding: 0.4rem 0.9rem;
-    font-family: inherit;
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    cursor: pointer;
-    text-decoration: none;
-    backdrop-filter: blur(6px);
-    transition: all 0.4s ease;
-    text-shadow: 0 0 8px rgba(180, 130, 230, 0.4);
-    font-weight: 300;
-  }
-  #listenTop:hover {
-    background: rgba(107, 47, 165, 0.3);
-    border-color: rgba(200, 150, 240, 0.8);
-    color: #efece0;
-    letter-spacing: 0.25em;
-  }
-
   /* English-specific letter-spacing — English works better with less spacing than Japanese */
   #opening .title { letter-spacing: 0.18em; }
   #opening .subtitle { letter-spacing: 0.18em; font-style: italic; }
@@ -496,6 +581,7 @@
   #message .line2 { letter-spacing: 0.2em; }
   #finale .finale-text { letter-spacing: 0.18em; font-style: italic; }
   #finale .finale-again { letter-spacing: 0.3em; }
+  #finale .finale-link { letter-spacing: 0.2em; }
   #audioToggle { letter-spacing: 0.15em; }
 
 </style>
@@ -510,8 +596,7 @@
 
 <div class="corner-mark tl">IN &mdash; MIST</div>
 
-<button id="audioToggle">♪ ON</button>
-<a id="listenTop" href="https://stand.fm/episodes/69e76f76826838108e2cbaef" target="_blank" rel="noopener noreferrer">Listen to the song →</a>
+<button id="audioToggle" style="display:none;">♪ ON</button>
 
 <!-- Scene 1: Opening -->
 <div class="scene active" id="opening">
@@ -578,17 +663,31 @@
 <!-- Scene 6: Finale -->
 <div class="scene" id="finale">
   <div class="finale-light"></div>
-  <div class="finale-text">
-    You,<br>
-    who have wandered,<br>
-    were enough.
+  <div class="finale-text" id="finaleMessage">
+    <!-- A random message will be inserted here -->
   </div>
   <button class="finale-again">again</button>
 </div>
 
-<audio id="bgm" loop preload="auto">
-  <!-- けんしさんのカバー曲mp3をここに置いてください -->
-  <source src="cover.mp3" type="audio/mpeg">
+<!-- The bird — a quiet messenger that appears at dawn -->
+<div class="bird" aria-hidden="true">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Body — soft white with a hint of cream -->
+    <ellipse cx="50" cy="55" rx="14" ry="9" fill="#fefcf5" opacity="0.95"/>
+    <!-- Head -->
+    <circle cx="62" cy="48" r="7" fill="#fefcf5" opacity="0.95"/>
+    <!-- Beak — small, golden -->
+    <path d="M 68 48 L 74 50 L 68 51 Z" fill="#e8b878"/>
+    <!-- Eye — tiny dot -->
+    <circle cx="64" cy="46" r="0.8" fill="#3d2a4a"/>
+    <!-- Wing — animated, the part that flaps -->
+    <ellipse class="wing" cx="46" cy="48" rx="16" ry="7" fill="#fefcf5" opacity="0.92"/>
+    <!-- Tail -->
+    <path d="M 36 55 L 28 52 L 28 58 Z" fill="#fefcf5" opacity="0.9"/>
+  </svg>
+</div>
+
+<audio id="bgm" loop preload="none" style="display:none;">
 </audio>
 
 <script>
@@ -746,10 +845,7 @@
 
   // ==================== Opening ====================
   document.querySelector('#opening .start').addEventListener('click', () => {
-    // start audio on first interaction (browser autoplay policy)
-    const bgm = document.getElementById('bgm');
-    bgm.volume = 0.6;
-    bgm.play().catch(() => {/* ignore if no file */});
+    // (audio removed for English version — silent experience)
     goTo('input');
   });
 
@@ -867,13 +963,45 @@
     }, 6500);
   }
 
+  // ==================== Affirmations (in Kenshi's words) ====================
+  // Each message is paired with an optional voice file.
+  // If voice files exist (e.g. voice-1.mp3), they will play automatically.
+  // If they don't exist, the app stays silent — the words alone are enough.
+  const affirmations = [
+    { text: "I've lived under constant tension —<br>but that's how hard I've worked.", voice: "voice-1.mp3" },
+    { text: "It's okay to feel like<br>something is missing.",                          voice: "voice-2.mp3" },
+    { text: "I'm grateful that I can<br>make people smile.",                            voice: "voice-3.mp3" },
+    { text: "Even if we never meet,<br>you are a treasure.",                            voice: "voice-4.mp3" },
+    { text: "I am the main character<br>of my life.",                                   voice: "voice-5.mp3" },
+    { text: "Wrong or right —<br>it doesn't matter.",                                   voice: "voice-6.mp3" }
+  ];
+
   // ==================== Finale ====================
   function runFinale() {
     const fin = document.getElementById('finale');
+    const msg = document.getElementById('finaleMessage');
+
+    // Pick a random affirmation
+    const pick = affirmations[Math.floor(Math.random() * affirmations.length)];
+    msg.innerHTML = pick.text;
+
+    // Brighten the world — dawn arrives, and the bird begins its flight
+    document.body.classList.add('dawn');
+
     // Light appears first
     setTimeout(() => fin.classList.add('light-on'), 400);
-    // Then the words
-    setTimeout(() => fin.classList.add('text-on'), 3200);
+
+    // Then the words arrive — as if the bird brought them
+    setTimeout(() => {
+      fin.classList.add('text-on');
+      // Play Kenshi's voice if the file exists
+      try {
+        const voice = new Audio(pick.voice);
+        voice.volume = 0.85;
+        voice.play().catch(() => {/* file not present yet — silent is fine */});
+      } catch (e) { /* silent fallback */ }
+    }, 3200);
+
     // Then the "again" button, very gently
     setTimeout(() => fin.classList.add('button-on'), 7500);
   }
@@ -886,19 +1014,14 @@
     document.querySelectorAll('.orb').forEach(o => o.classList.remove('visible'));
     const fin = document.getElementById('finale');
     fin.classList.remove('light-on', 'text-on', 'button-on');
+    // Return to the night — dawn fades
+    document.body.classList.remove('dawn');
     submitBtn.classList.remove('ready');
     goTo('input');
   });
 
-  // ==================== Audio toggle ====================
-  const bgm = document.getElementById('bgm');
-  const audioToggle = document.getElementById('audioToggle');
-  let audioOn = true;
-  audioToggle.addEventListener('click', () => {
-    audioOn = !audioOn;
-    bgm.muted = !audioOn;
-    audioToggle.textContent = audioOn ? '♪ ON' : '♪ OFF';
-  });
+  // ==================== Audio removed for English version ====================
+  // The English version is a silent, contemplative experience.
 })();
 </script>
 </body>
