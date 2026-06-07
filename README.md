@@ -38,7 +38,7 @@ There is no spectacle. No entertainment.
 
 
 | ![Screen 4](スクリーンショット%202026-05-03%20185226.png) | ![Screen 5](スクリーンショット%202026-05-03%20185256.png) |
-
+![In mist310](in mist310.png)
 
  Try it
 
@@ -69,10 +69,4 @@ Tech
 
 Sora ni Ikou ([@soraniikou](https://github.com/soraniikou))
 
-A cappella cover
-Inspiration & Sound
-This app was inspired by the world of Kenshi Yonezu.
-You can listen to the concept a cappella vocal here:
-🎧 Listen to the A cappella on 
-https://stand.fm/episodes/69e76f76826838108e2cbaef
-(Unofficial Cover）
+
