@@ -38,7 +38,8 @@ Five minutes, in silence, returning to yourself.
 
 
 | ![Screen 4](スクリーンショット%202026-05-03%20185226.png) | ![Screen 5](スクリーンショット%202026-05-03%20185256.png) |
-![In mist310](in mist310%.png)
+![In mist310](in%20mist310.png)
+
 
  Try it
 
