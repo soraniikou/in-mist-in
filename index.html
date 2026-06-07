@@ -964,16 +964,13 @@
   }
 
   // ==================== Affirmations (in Kenshi's words) ====================
-  // Each message is paired with an optional voice file.
-  // If voice files exist (e.g. voice-1.mp3), they will play automatically.
-  // If they don't exist, the app stays silent — the words alone are enough.
   const affirmations = [
-    { text: "I've lived under constant tension —<br>but that's how hard I've worked.", voice: "voice-1.mp3" },
-    { text: "It's okay to feel like<br>something is missing.",                          voice: "voice-2.mp3" },
-    { text: "I'm grateful that I can<br>make people smile.",                            voice: "voice-3.mp3" },
-    { text: "Even if we never meet,<br>you are a treasure.",                            voice: "voice-4.mp3" },
-    { text: "I am the main character<br>of my life.",                                   voice: "voice-5.mp3" },
-    { text: "Wrong or right —<br>it doesn't matter.",                                   voice: "voice-6.mp3" }
+    "I've lived under constant tension —<br>but that's how hard I've worked.",
+    "It's okay to feel like<br>something is missing.",
+    "I'm grateful that I can<br>make people smile.",
+    "Even if we never meet,<br>you are a treasure.",
+    "I am the main character<br>of my life.",
+    "Wrong or right —<br>it doesn't matter."
   ];
 
   // ==================== Finale ====================
@@ -983,7 +980,7 @@
 
     // Pick a random affirmation
     const pick = affirmations[Math.floor(Math.random() * affirmations.length)];
-    msg.innerHTML = pick.text;
+    msg.innerHTML = pick;
 
     // Brighten the world — dawn arrives, and the bird begins its flight
     document.body.classList.add('dawn');
@@ -992,15 +989,7 @@
     setTimeout(() => fin.classList.add('light-on'), 400);
 
     // Then the words arrive — as if the bird brought them
-    setTimeout(() => {
-      fin.classList.add('text-on');
-      // Play Kenshi's voice if the file exists
-      try {
-        const voice = new Audio(pick.voice);
-        voice.volume = 0.85;
-        voice.play().catch(() => {/* file not present yet — silent is fine */});
-      } catch (e) { /* silent fallback */ }
-    }, 3200);
+    setTimeout(() => fin.classList.add('text-on'), 3200);
 
     // Then the "again" button, very gently
     setTimeout(() => fin.classList.add('button-on'), 7500);
@@ -1019,9 +1008,6 @@
     submitBtn.classList.remove('ready');
     goTo('input');
   });
-
-  // ==================== Audio removed for English version ====================
-  // The English version is a silent, contemplative experience.
 })();
 </script>
 </body>
