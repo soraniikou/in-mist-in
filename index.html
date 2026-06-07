@@ -17,11 +17,13 @@
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
+    transition: background 10s ease;
   }
 
   #stage {
     position: fixed; inset: 0;
     background: radial-gradient(ellipse at 50% 55%, #1a1820 0%, #0e0d10 60%, #06060a 100%);
+    transition: background 10s ease;
   }
   canvas { position: absolute; inset: 0; display: block; }
   #mist { z-index: 1; }
@@ -417,15 +419,13 @@
     color: #2a1a3a;
   }
 
-  /* Dawn background — when finale scene is active, the whole stage gently brightens */
-  body.dawn { background: #f4ecdf; }
+  /* Dawn background — pale pink/lavender, slowly rising over 10s */
+  body.dawn { background: #a8a2b5; }
   body.dawn #stage {
-    background: radial-gradient(ellipse at 50% 45%, #fff8ec 0%, #f4ecdf 40%, #e8d8c4 80%, #d8c4a8 100%);
-    transition: background 4s ease;
+    background: radial-gradient(ellipse at 50% 38%, #c4bcc8 0%, #b8b0bc 28%, #a8a2b5 58%, #9890a0 100%);
   }
-  body.dawn #mist { opacity: 0.5; transition: opacity 4s ease; }
-  #stage { transition: background 4s ease; }
-  #mist { transition: opacity 4s ease; }
+  body.dawn #mist { opacity: 0.35; }
+  #mist { transition: opacity 10s ease; }
 
   /* Finale text colors — adapt to dawn background */
   body.dawn #finale .finale-text {
