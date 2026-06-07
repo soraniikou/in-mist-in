@@ -42,7 +42,7 @@ There is no spectacle. No entertainment.
 
  Try it
 
-🌫️ **[in-mist.in.vercel.app](https://in-mist.vercel.app)**
+🌫️ **[in-mist-in.vercel.app](https://in-mist-in.vercel.app)**
 
 Just open it in your browser. No installation.
 
