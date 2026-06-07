@@ -18,7 +18,7 @@ Whichever you choose, you are affirmed.
 
 At the end, a single light remains.
 
----
+
 
  Who is this for?
 
@@ -28,9 +28,9 @@ At the end, a single light remains.
 - Those who love the world of Kenshi Yonezu's *Machigaisagashi*
 
 There is no spectacle. No entertainment.
-**Five minutes, in silence, returning to yourself.**
+Five minutes, in silence, returning to yourself.
 
-### Screenshots
+ Screenshots
 
 | | | |
 | :---: | :---: | :---: |
@@ -38,7 +38,7 @@ There is no spectacle. No entertainment.
 
 
 | ![Screen 4](スクリーンショット%202026-05-03%20185226.png) | ![Screen 5](スクリーンショット%202026-05-03%20185256.png) |
-![In mist310](in mist310.png)
+![In mist310](in mist310%.png)
 
  Try it
 
